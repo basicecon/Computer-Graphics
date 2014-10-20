@@ -14,7 +14,7 @@ M33::M33() {
 }
 // Constructor: rotation about {x|y|z} axis alpha degrees
 M33::M33(int index, float alpha) {
-	float rad = (float)alpha*PI/180;
+	float rad = (float)alpha*PI/180.0;
 	if (index == 0) {
 		rows[0] = V3(1, 0, 0);
 		rows[1] = V3(0, cos(rad), -sin(rad));

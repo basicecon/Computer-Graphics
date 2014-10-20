@@ -5,6 +5,9 @@
 #include "ppc.h"
 
 
+#include <array>
+
+
 
 class TMesh {
 public:
@@ -32,7 +35,19 @@ public:
 
   void RenderFilled(PPC *ppc, FrameBuffer *fb,
 	  unsigned int color, V3 L, float ka, float es, int renderMode);
+
+  //clipping
+  void ClipBbox(FrameBuffer *fb, AABB *bbox);
+  std::array<float, 3> KD_perV(V3 lv, V3 *normals, int vi1, int vi2, int vi3);
+  std::array<float, 3> KS_perV(V3 lv, V3 C, V3 *normals, int vi1, int vi2, int vi3, float e);
+
+  float KD_perP(V3 lv, V3 n);
+  float KS_perP(V3 lv, V3 C, V3 n, float e);
+
+  V3 getSScolor(V3 *color, float ka, std::array<float, 3> kd, std::array<float, 3> ks, 
+	  M33 ras_para, char *choice);
+
   V3 SSIVColor(V3 pv, V3 redABC, V3 greenABC, V3 blueABC);
   V3 SSIN(V3 pv, V3 nxABC, V3 nyABC, V3 nzABC);
-  float KS(V3 L, V3 C, V3 n, float e);
+  
 };

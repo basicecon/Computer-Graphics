@@ -84,24 +84,23 @@ float PPC::GetF() {
 }
 
 void PPC::Pan(float deg) {
-	a = a.RotatePoint(C, C-b, deg);
-	b = b.RotatePoint(C, C-b, deg);
-	c = c.RotatePoint(C, C-b, deg);
+	a = a.RotatePointAboutArbitraryAxis(C, C - b, deg);
+	b = b.RotatePointAboutArbitraryAxis(C, C - b, deg);
+	c = c.RotatePointAboutArbitraryAxis(C, C - b, deg);
 	C = C;
 }
 
 void PPC::Tilt(float deg) {
-	a = a.RotatePoint(C, C+a, deg);
-	b = b.RotatePoint(C, C+a, deg);
-	c = c.RotatePoint(C, C+a, deg);
+	a = a.RotatePointAboutArbitraryAxis(C, C + a, deg);
+	b = b.RotatePointAboutArbitraryAxis(C, C + a, deg);
+	c = c.RotatePointAboutArbitraryAxis(C, C + a, deg);
 	C = C;
 }
 
 void PPC::Roll(float deg) {
-	V3 ab = a&b;
-	a = a.RotatePoint(C, C+ab, deg);
-	b = b.RotatePoint(C, C+ab, deg);
-	c = c.RotatePoint(C, C+ab, deg);
+	a = a.RotatePointAboutArbitraryAxis(C, C + a&b, deg);
+	b = b.RotatePointAboutArbitraryAxis(C, C + a&b, deg);
+	c = c.RotatePointAboutArbitraryAxis(C, C + a&b, deg);
 	C = C;
 }
 
@@ -116,7 +115,7 @@ void PPC::UpDownTranslation(int steps) {
 	a = a;
 	b = b;
 	c = c;
-	C = b.UnitVector()*steps;
+	C = C + b.UnitVector()*steps;
 }
 
 void PPC::FrontBackTranslation(int steps) {
@@ -124,7 +123,7 @@ void PPC::FrontBackTranslation(int steps) {
 	a = a;
 	b = b;
 	c = c;
-	C = ab.UnitVector()*steps;
+	C = C + ab.UnitVector()*steps;
 }
 
 V3 PPC::GetPointOnImagePlane(float uf, float vf) {
@@ -244,18 +243,7 @@ void PPC::Visualize(PPC *ppc1, FrameBuffer *fb, unsigned int color) {
 	p3 = GetPointOnFocalPlane(w, h, h);
 	p4 = GetPointOnFocalPlane(0, h, h);
 
-	/*
-	fb->Draw3DSegment(C, p1, ppc1, color);
-	fb->Draw3DSegment(C, p2, ppc1, color);
-	fb->Draw3DSegment(C, p3, ppc1, color);
-	fb->Draw3DSegment(C, p4, ppc1, color);
-
-	fb->Draw3DSegment(p1, p2, ppc1, color);
-	fb->Draw3DSegment(p2, p3, ppc1, color);
-	fb->Draw3DSegment(p3, p4, ppc1, color);
-	fb->Draw3DSegment(p4, p1, ppc1, color);
-	*/
-
+	
 	V3 c;
 	c.SetFromColor(color);
 	fb->Draw3DSegment(C, p1, ppc1, c, c);

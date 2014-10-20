@@ -355,6 +355,7 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
 		// Do not render triangle if any of its vertices had an invalid projection
 		if (!proj_flag[vinds[0]] || !proj_flag[vinds[1]] || !proj_flag[vinds[2]])
 			continue;
+
 		for (int vi = 0; vi < 3; vi++){
 			V3 col0, col1;
 			if (cols) {
@@ -371,27 +372,8 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
 		bbox->AddPoint(pverts[vinds[1]]);
 		bbox->AddPoint(pverts[vinds[2]]);
 
-		// Clip aabb with frame
-		if (fb->IsOutsideFrame(bbox->corners[0][0], bbox->corners[0][1])){
-			if (bbox->corners[0][0] < 0)
-				bbox->corners[0][0] = 0;
-			else if (bbox->corners[0][0]>fb->w)
-				bbox->corners[0][0] = fb->w - 1;
-			if (bbox->corners[0][1] < 0)
-				bbox->corners[0][1] = 0;
-			else if (bbox->corners[0][1] > fb->h)
-				bbox->corners[0][1] = fb->h - 1;
-		}
-		else if (fb->IsOutsideFrame(bbox->corners[1][0], bbox->corners[1][1])){
-			if (bbox->corners[1][0] < 0)
-				bbox->corners[1][0] = 0;
-			else if (bbox->corners[1][0]>fb->w)
-				bbox->corners[1][0] = fb->w - 1;
-			if (bbox->corners[1][1] < 0)
-				bbox->corners[1][1] = 0;
-			else if (bbox->corners[1][1] > fb->h)
-				bbox->corners[1][1] = fb->h - 1;
-		}
+		// clip bbox within frame
+		ClipBbox(fb, bbox);
 
 		// Setup edge equations ee0, ee1, ee2
 		float a[3], b[3], c[3];
@@ -473,6 +455,8 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
 		V3 rBlue = V3(r[0], r[1], r[2]);
 		V3 blueABC = rast_inv*rBlue;
 
+
+
 		// Setup screen space linear variation of nx
 		r[0] = normals[vinds[0]][0];
 		r[1] = normals[vinds[1]][0];
@@ -529,50 +513,24 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
 
 				if (renderMode == 1){
 					unsigned int c = SSIVColor(pv, redABC, greenABC, blueABC).GetColor();
-					// cerr << "u = " << u << " v = " << v << " c=" << c << endl;
 					fb->Set(u, v, c);
 				}
 				else if (renderMode == 2){
-					float kd[3];
-					float ks[3];
-					V3 n0, n1, n2;
+					
 					V3 P = ppc->UnProject(V3(u + 0.5, v + 0.5, currz));
-					V3 lv = L - P; 
+					V3 lv = L - P;
 					lv.Normalize();
-					kd[0] = lv * normals[vinds[0]];
-					kd[1] = lv * normals[vinds[1]];
-					kd[2] = lv * normals[vinds[2]];
-					kd[0] = (kd[0] < 0) ? 0 : kd[0];
-					kd[1] = (kd[1] < 0) ? 0 : kd[1];
-					kd[2] = (kd[2] < 0) ? 0 : kd[2];
+					std::array<float, 3> kd = KD_perV(lv, normals, vinds[0], vinds[1], vinds[2]);
+					std::array<float, 3> ks = KS_perV(lv, ppc->C, normals, vinds[0], vinds[1], vinds[2], es);
 
-					ks[0] = KS(lv, ppc->C, normals[vinds[0]], es);
-					ks[1] = KS(lv, ppc->C, normals[vinds[1]], es);
-					ks[2] = KS(lv, ppc->C, normals[vinds[2]], es);
-
-					//Setup Screen Space linear variation lredABC
-					r[0] = colors[0][0] * (ka + (1 - ka) * kd[0] + ks[0]);
-					r[1] = colors[1][0] * (ka + (1 - ka) * kd[1] + ks[1]);
-					r[2] = colors[2][0] * (ka + (1 - ka) * kd[2] + ks[2]);
-					V3 lrRed = V3(r[0], r[1], r[2]);
-					V3 lredABC = rast_inv*lrRed;
-
-					//Setup Screen Space linear variation lgreenABC
-					r[0] = colors[0][1] * (ka + (1 - ka) * kd[0] + ks[0]);
-					r[1] = colors[1][1] * (ka + (1 - ka) * kd[1] + ks[1]);
-					r[2] = colors[2][1] * (ka + (1 - ka) * kd[2] + ks[2]);
-					V3 lrGreen = V3(r[0], r[1], r[2]);
-					V3 lgreenABC = rast_inv*lrGreen;
-
-					//Setup Screen Space linear variation lblueABC
-					r[0] = colors[0][2] * (ka + (1 - ka) * kd[0] + ks[0]);
-					r[1] = colors[1][2] * (ka + (1 - ka) * kd[1] + ks[1]);
-					r[2] = colors[2][2] * (ka + (1 - ka) * kd[2] + ks[2]);
-					V3 lrBlue = V3(r[0], r[1], r[2]);
-					V3 lblueABC = rast_inv*lrBlue;
-
-					V3 newColor = SSIVColor(pv, lredABC, lgreenABC, lblueABC);
+					//Setup Screen Space linear variation 
+					V3 lrRedABC = getSScolor(colors, ka, kd, ks, rast_inv, "red");
+					V3 lrGreenABC = getSScolor(colors, ka, kd, ks, rast_inv, "green");
+					V3 lrBlueABC = getSScolor(colors, ka, kd, ks, rast_inv, "blue");
+				
+					V3 newColor = SSIVColor(pv, lrRedABC, lrGreenABC, lrBlueABC);
 					fb->Set(u, v, newColor.GetColor());
+					
 				}
 				else if (renderMode == 3){
 					//	surface point at current pixel P
@@ -581,11 +539,12 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
 					//	lv = (L-P).normalized()
 					V3 lv = L - P;
 					lv.Normalize();
+
 					//	kd = lv * n; kd = (kd<0)?0:kd;
 					V3 n = SSIN(pv, nxABC, nyABC, nzABC);
-					float kd = lv * n;
-					kd = (kd < 0) ? 0 : kd;
-					float ks = KS(lv, ppc->C, n, es);
+					float kd = KD_perP(lv, n);
+					float ks = KS_perP(lv, ppc->C, n, es);
+
 					//	FB[p] = color * (ka + (1-ka)*kd);
 					V3 origColor = SSIVColor(pv, redABC, greenABC, blueABC);
 					V3 newColor = origColor * (ka + (1 - ka)*kd + ks);
@@ -597,9 +556,110 @@ void TMesh::RenderFilled(PPC *ppc, FrameBuffer *fb,
 	delete[]pverts;
 }
 
-// SM1
+// Clip aabb with frame
+void TMesh::ClipBbox(FrameBuffer *fb, AABB *bbox) {
+	
+	if (fb->IsOutsideFrame(bbox->corners[0][0], bbox->corners[0][1])){
+		if (bbox->corners[0][0] < 0)
+			bbox->corners[0][0] = 0;
+		else if (bbox->corners[0][0]>fb->w)
+			bbox->corners[0][0] = fb->w - 1;
+		if (bbox->corners[0][1] < 0)
+			bbox->corners[0][1] = 0;
+		else if (bbox->corners[0][1] > fb->h)
+			bbox->corners[0][1] = fb->h - 1;
+	}
+	else if (fb->IsOutsideFrame(bbox->corners[1][0], bbox->corners[1][1])){
+		if (bbox->corners[1][0] < 0)
+			bbox->corners[1][0] = 0;
+		else if (bbox->corners[1][0]>fb->w)
+			bbox->corners[1][0] = fb->w - 1;
+		if (bbox->corners[1][1] < 0)
+			bbox->corners[1][1] = 0;
+		else if (bbox->corners[1][1] > fb->h)
+			bbox->corners[1][1] = fb->h - 1;
+	}
+}
+
+// calculate diffuse reflection coefficient kd
+std::array<float, 3> TMesh::KD_perV(V3 lv, V3 *normals, int vi1, int vi2, int vi3) {
+	
+    std::array<float, 3> kd;
+	//lv.Normalize();
+	kd[0] = lv * normals[vi1];
+	kd[1] = lv * normals[vi2];
+	kd[2] = lv * normals[vi3];
+	kd[0] = (kd[0] < 0) ? 0 : kd[0];
+	kd[1] = (kd[1] < 0) ? 0 : kd[1];
+	kd[2] = (kd[2] < 0) ? 0 : kd[2];
+
+	return kd;
+}
+
+// calculate ks
+std::array<float, 3> TMesh::KS_perV(V3 lv, V3 C, V3 *normals, int vi1, int vi2, int vi3, float e){
+
+	std::array<float, 3> ks;
+	float lr1 = lv*(C - (normals[vi1] * 2)*(normals[vi1] * C));
+	float lr2 = lv*(C - (normals[vi1] * 2)*(normals[vi2] * C));
+	float lr3 = lv*(C - (normals[vi1] * 2)*(normals[vi3] * C));
+	
+	ks[0] = pow(lr1, e);
+	ks[1] = pow(lr2, e);	
+	ks[2] = pow(lr3, e);
+
+	return ks;
+}
+
+float TMesh::KD_perP(V3 lv, V3 n) {
+	float kd = lv * n;
+	kd = (kd < 0) ? 0 : kd;
+	return kd;
+}
+
+float TMesh::KS_perP(V3 lv, V3 C, V3 n, float e) {
+	float ks = lv*(C - (n * 2)*(n * C));
+	return ks;
+}
+
+V3 TMesh::getSScolor(V3 *colors, float ka, std::array<float, 3> kd, std::array<float, 3> ks, 
+	M33 ras_para, char *choice) {
+
+	char *red = "red";
+	char *green = "green";
+	char *blue = "blue";
+	V3 ret;
+
+	if (strcmp(choice, red) == 0) {
+		ret[0] = colors[0][0] * (ka + (1 - ka) * kd[0] + ks[0]);
+		ret[1] = colors[1][0] * (ka + (1 - ka) * kd[1] + ks[1]);
+		ret[2] = colors[2][0] * (ka + (1 - ka) * kd[2] + ks[2]);
+		
+	}
+	else if (strcmp(choice, green) == 0) {
+		ret[0] = colors[0][1] * (ka + (1 - ka) * kd[0] + ks[0]);
+		ret[1] = colors[1][1] * (ka + (1 - ka) * kd[1] + ks[1]);
+		ret[2] = colors[2][1] * (ka + (1 - ka) * kd[2] + ks[2]);
+	}
+	else if (strcmp(choice, blue) == 0) {
+		ret[0] = colors[0][2] * (ka + (1 - ka) * kd[0] + ks[0]);
+		ret[1] = colors[1][2] * (ka + (1 - ka) * kd[1] + ks[1]);
+		ret[2] = colors[2][2] * (ka + (1 - ka) * kd[2] + ks[2]);
+	}
+	else {
+		cerr << "error when getting color ABC!" << endl;
+	}
+	ret = ras_para * ret;
+	return ret;
+
+}
+
+
+
+
+// getting color 
 V3 TMesh::SSIVColor(V3 pv, V3 redABC, V3 greenABC, V3 blueABC){
-	// if rendering mode is vertext color interpolation = SM1
+	// if rendering mode is vertex color interpolation = SM1
 	//	ssiRed = redABC * pv;
 	float ssiRed = redABC * pv;
 	//	ssiGreen = greenABC * pv
@@ -611,7 +671,7 @@ V3 TMesh::SSIVColor(V3 pv, V3 redABC, V3 greenABC, V3 blueABC){
 	return ret;
 }
 
-// SM3
+// getting normal
 V3 TMesh::SSIN(V3 pv, V3 nxABC, V3 nyABC, V3 nzABC){
 	// if redering mode is per pixel diffuse lighting = SM3
 	V3 n;
@@ -625,11 +685,5 @@ V3 TMesh::SSIN(V3 pv, V3 nxABC, V3 nyABC, V3 nzABC){
 	n.Normalize();
 	return n;
 }
-// Compute ks
-float TMesh::KS(V3 L, V3 C, V3 n, float e){
-	float ks;
-	float lr = L*(C - (n * 2)*(n*C));
-	ks = pow(lr, e);
-	return ks;
-}
+
 

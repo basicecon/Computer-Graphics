@@ -27,7 +27,7 @@ public:
   void SetZ(int u, int v, float currz);
   bool IsFarther(int u, int v, float currz);
   
-  TIFF* LoadTiff(const char* fileName, FrameBuffer *&displayFb);
+  unsigned int LoadTiff(const char* filename, FrameBuffer *&fb);
   void SaveTiff(const char* fileName);
   //TIFF* AdjustBrightness(const char* fileName, int percentage, FrameBuffer *&fb);
   void AdjustBrightness(int percentage);

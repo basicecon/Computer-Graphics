@@ -2,33 +2,198 @@
 
 #include "gui.h"
 
-void GUI::cb_DBG_i(Fl_Button*, void*) {
-  DBG_cb();
+void GUI::cb_VisualizeButton_i(Fl_Button*, void*) {
+  visualize_cb();
 }
-void GUI::cb_DBG(Fl_Button* o, void* v) {
-  ((GUI*)(o->parent()->user_data()))->cb_DBG_i(o,v);
+void GUI::cb_VisualizeButton(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_VisualizeButton_i(o,v);
 }
 
-void GUI::cb_FlagB_i(Fl_Check_Button*, void*) {
-  FlagB_cb();
+void GUI::cb_Up_i(Fl_Button*, void*) {
+  up_cb();
 }
-void GUI::cb_FlagB(Fl_Check_Button* o, void* v) {
-  ((GUI*)(o->parent()->user_data()))->cb_FlagB_i(o,v);
+void GUI::cb_Up(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Up_i(o,v);
 }
+
+void GUI::cb_Down_i(Fl_Button*, void*) {
+  down_cb();
+}
+void GUI::cb_Down(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Down_i(o,v);
+}
+
+void GUI::cb_Left_i(Fl_Button*, void*) {
+  left_cb();
+}
+void GUI::cb_Left(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Left_i(o,v);
+}
+
+void GUI::cb_Right_i(Fl_Button*, void*) {
+  right_cb();
+}
+void GUI::cb_Right(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Right_i(o,v);
+}
+
+void GUI::cb_Front_i(Fl_Button*, void*) {
+  front_cb();
+}
+void GUI::cb_Front(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Front_i(o,v);
+}
+
+void GUI::cb_Back_i(Fl_Button*, void*) {
+  back_cb();
+}
+void GUI::cb_Back(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Back_i(o,v);
+}
+
+void GUI::cb_Zoom_i(Fl_Button*, void*) {
+  zoomin_cb();
+}
+void GUI::cb_Zoom(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Zoom_i(o,v);
+}
+
+void GUI::cb_Zoom1_i(Fl_Button*, void*) {
+  zoomout_cb();
+}
+void GUI::cb_Zoom1(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Zoom1_i(o,v);
+}
+
+void GUI::cb_Pan_i(Fl_Button*, void*) {
+  pan_cb();
+}
+void GUI::cb_Pan(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Pan_i(o,v);
+}
+
+void GUI::cb_Tilt_i(Fl_Button*, void*) {
+  tilt_cb();
+}
+void GUI::cb_Tilt(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Tilt_i(o,v);
+}
+
+void GUI::cb_Roll_i(Fl_Button*, void*) {
+  roll_cb();
+}
+void GUI::cb_Roll(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_Roll_i(o,v);
+}
+
+void GUI::cb_SM1_i(Fl_Button*, void*) {
+  SM1_cb();
+}
+void GUI::cb_SM1(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_SM1_i(o,v);
+}
+
+void GUI::cb_SM2_i(Fl_Button*, void*) {
+  SM2_cb();
+}
+void GUI::cb_SM2(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_SM2_i(o,v);
+}
+
+void GUI::cb_SM3_i(Fl_Button*, void*) {
+  SM3_cb();
+}
+void GUI::cb_SM3(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_SM3_i(o,v);
+}
+
+void GUI::cb_SM2Play_i(Fl_Button*, void*) {
+  SM2Play_cb();
+}
+void GUI::cb_SM2Play(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_SM2Play_i(o,v);
+}
+
+void GUI::cb_SM3Play_i(Fl_Button*, void*) {
+  SM3Play_cb();
+}
+void GUI::cb_SM3Play(Fl_Button* o, void* v) {
+  ((GUI*)(o->parent()->user_data()))->cb_SM3Play_i(o,v);
+}
+
 #include "scene.h"
 
 GUI::GUI() {
-  { uiw = new Fl_Double_Window(199, 197, "GUI");
+  { uiw = new Fl_Double_Window(870, 796, "Control Center");
     uiw->user_data((void*)(this));
-    { Fl_Button* o = new Fl_Button(15, 15, 95, 50, "DBG");
-      o->selection_color(FL_DARK_RED);
-      o->callback((Fl_Callback*)cb_DBG);
+ 
+    { VisualizeButton = new Fl_Button(587, 293, 124, 32, "Visualize Camera");
+      VisualizeButton->callback((Fl_Callback*)cb_VisualizeButton);
+    } // Fl_Button* VisualizeButton
+    { Fl_Button* o = new Fl_Button(615, 105, 65, 50, "Up");
+      o->callback((Fl_Callback*)cb_Up);
     } // Fl_Button* o
-    { FlagB = new Fl_Check_Button(15, 80, 70, 25, "Flag");
-      FlagB->down_box(FL_DOWN_BOX);
-      FlagB->value(1);
-      FlagB->callback((Fl_Callback*)cb_FlagB);
-    } // Fl_Check_Button* FlagB
+    { Fl_Button* o = new Fl_Button(615, 157, 65, 50, "Down");
+      o->callback((Fl_Callback*)cb_Down);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(552, 157, 58, 51, "Left");
+      o->callback((Fl_Callback*)cb_Left);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(683, 154, 64, 53, "Right");
+      o->callback((Fl_Callback*)cb_Right);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(550, 220, 90, 30, "Front");
+      o->callback((Fl_Callback*)cb_Front);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(650, 220, 95, 30, "Back");
+      o->callback((Fl_Callback*)cb_Back);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(770, 92, 64, 30, "Zoom in");
+      o->callback((Fl_Callback*)cb_Zoom);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(771, 130, 64, 30, "Zoom out");
+      o->callback((Fl_Callback*)cb_Zoom1);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(772, 167, 64, 30, "Pan");
+      o->callback((Fl_Callback*)cb_Pan);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(772, 202, 64, 30, "Tilt");
+      o->callback((Fl_Callback*)cb_Tilt);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(772, 236, 64, 30, "Roll");
+      o->callback((Fl_Callback*)cb_Roll);
+    } // Fl_Button* o
+    { pointlightX = new Fl_Input(196, 375, 59, 35, "Point light position (x,y,z):");
+      
+    } // Fl_Input* pointLightx
+    { pointlightY = new Fl_Input(255, 375, 55, 35);
+      
+    } // Fl_Input* pointLighty
+    { pointlightZ = new Fl_Input(308, 375, 60, 35);
+      
+    } // Fl_Input* pointLightz
+    { ka = new Fl_Input(135, 435, 95, 30, "Ambient factor: ");
+      
+    } // Fl_Input* ka
+    { es = new Fl_Input(162, 470, 68, 30, "Specular exponent: ");
+      
+    } // Fl_Input* es
+    { SM1 = new Fl_Button(35, 524, 55, 25, "SM1");
+      SM1->callback((Fl_Callback*)cb_SM1);
+    } // Fl_Button* SM1
+    { SM2 = new Fl_Button(90, 524, 55, 25, "SM2");
+      SM2->callback((Fl_Callback*)cb_SM2);
+    } // Fl_Button* SM2
+    { SM3 = new Fl_Button(145, 524, 55, 25, "SM3");
+      SM3->callback((Fl_Callback*)cb_SM3);
+    } // Fl_Button* SM3
+    { SM2Play = new Fl_Button(305, 435, 125, 35, "SM2 Moving Light");
+      SM2Play->callback((Fl_Callback*)cb_SM2Play);
+    } // Fl_Button* SM2Play
+    { SM3Play = new Fl_Button(305, 478, 125, 35, "SM3 Moving Light");
+      SM3Play->callback((Fl_Callback*)cb_SM3Play);
+    } // Fl_Button* SM3Play
+    
     uiw->end();
   } // Fl_Double_Window* uiw
 }
@@ -42,10 +207,74 @@ void GUI::show() {
   uiw->show();
 }
 
-void GUI::DBG_cb() {
-  scene->DBG();
+
+void GUI::visualize_cb() {
+  scene->Visualize();
 }
 
-void GUI::FlagB_cb() {
-  scene->FlagB();
+void GUI::up_cb() {
+  scene->Up();
 }
+
+void GUI::down_cb() {
+  scene->Down();
+}
+
+void GUI::left_cb() {
+  scene->Left();
+}
+
+void GUI::right_cb() {
+  scene->Right();
+}
+
+void GUI::front_cb() {
+  scene->Front();
+}
+
+void GUI::back_cb() {
+  scene->Back();
+}
+
+void GUI::pan_cb() {
+  scene->Pan();
+}
+
+void GUI::tilt_cb() {
+  scene->Tilt();
+}
+
+void GUI::roll_cb() {
+  scene->Roll();
+}
+
+void GUI::zoomin_cb() {
+  scene->ZoomIn();
+}
+
+void GUI::zoomout_cb() {
+  scene->ZoomOut();
+}
+
+
+
+void GUI::SM1_cb() {
+  scene->SM1();
+}
+
+void GUI::SM2_cb() {
+  scene->SM2();
+}
+
+void GUI::SM3_cb() {
+  scene->SM3();
+}
+
+void GUI::SM2Play_cb() {
+  scene->SM2Play();
+}
+
+void GUI::SM3Play_cb() {
+  scene->SM3Play();
+}
+

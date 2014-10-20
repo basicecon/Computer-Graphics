@@ -5,23 +5,105 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
-#include <FL/Fl_Check_Button.H>
+#include <FL/Fl_File_Input.H>
+#include <FL/Fl_Input.H>
 
 class GUI {
 public:
   GUI();
   Fl_Double_Window *uiw;
-private:
-  void cb_DBG_i(Fl_Button*, void*);
-  static void cb_DBG(Fl_Button*, void*);
+
 public:
-  Fl_Check_Button *FlagB;
+  Fl_Button *VisualizeButton;
 private:
-  void cb_FlagB_i(Fl_Check_Button*, void*);
-  static void cb_FlagB(Fl_Check_Button*, void*);
+  void cb_VisualizeButton_i(Fl_Button*, void*);
+  static void cb_VisualizeButton(Fl_Button*, void*);
+  void cb_Up_i(Fl_Button*, void*);
+  static void cb_Up(Fl_Button*, void*);
+  void cb_Down_i(Fl_Button*, void*);
+  static void cb_Down(Fl_Button*, void*);
+  void cb_Left_i(Fl_Button*, void*);
+  static void cb_Left(Fl_Button*, void*);
+  void cb_Right_i(Fl_Button*, void*);
+  static void cb_Right(Fl_Button*, void*);
+  void cb_Front_i(Fl_Button*, void*);
+  static void cb_Front(Fl_Button*, void*);
+  void cb_Back_i(Fl_Button*, void*);
+  static void cb_Back(Fl_Button*, void*);
+  void cb_Zoom_i(Fl_Button*, void*);
+  static void cb_Zoom(Fl_Button*, void*);
+  void cb_Zoom1_i(Fl_Button*, void*);
+  static void cb_Zoom1(Fl_Button*, void*);
+  void cb_Pan_i(Fl_Button*, void*);
+  static void cb_Pan(Fl_Button*, void*);
+  void cb_Tilt_i(Fl_Button*, void*);
+  static void cb_Tilt(Fl_Button*, void*);
+  void cb_Roll_i(Fl_Button*, void*);
+  static void cb_Roll(Fl_Button*, void*);
+  
+public:
+  Fl_Input *pointlightX;
+public:
+  Fl_Input *pointlightY;
+public:
+  Fl_Input *pointlightZ;
+
+public:
+  Fl_Input *ka;
+public:
+  Fl_Input *es;
+
+  void cb_Draw_i(Fl_Button*, void*);
+  static void cb_Draw(Fl_Button*, void*);
+public:
+  Fl_Button *SM1;
+private:
+  void cb_SM1_i(Fl_Button*, void*);
+  static void cb_SM1(Fl_Button*, void*);
+public:
+  Fl_Button *SM2;
+private:
+  void cb_SM2_i(Fl_Button*, void*);
+  static void cb_SM2(Fl_Button*, void*);
+public:
+  Fl_Button *SM3;
+private:
+  void cb_SM3_i(Fl_Button*, void*);
+  static void cb_SM3(Fl_Button*, void*);
+public:
+  Fl_Button *SM2Play;
+private:
+  void cb_SM2Play_i(Fl_Button*, void*);
+  static void cb_SM2Play(Fl_Button*, void*);
+public:
+  Fl_Button *SM3Play;
+private:
+  void cb_SM3Play_i(Fl_Button*, void*);
+  static void cb_SM3Play(Fl_Button*, void*);
+
 public:
   void show();
-  void DBG_cb();
-  void FlagB_cb();
+  void LoadFile_cb();
+  void SaveFile_cb();
+  void visualize_cb();
+  void up_cb();
+  void down_cb();
+  void left_cb();
+  void right_cb();
+  void front_cb();
+  void back_cb();
+  void pan_cb();
+  void tilt_cb();
+  void roll_cb();
+  void zoomin_cb();
+  void zoomout_cb();
+  
+  void ka_cb();
+  void es_cb();
+  void SM1_cb();
+  void SM2_cb();
+  void SM3_cb();
+  void SM2Play_cb();
+  void SM3Play_cb();
 };
 #endif
