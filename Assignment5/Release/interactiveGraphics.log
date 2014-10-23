@@ -1,0 +1,24 @@
+﻿Build started 10/20/2014 3:32:49 AM.
+Project "C:\Users\Kathy Wang\Documents\Visual Studio 2013\Projects\InteractiveGraphics\interactiveGraphics.vcxproj" on node 2 (Build target(s)).
+ClCompile:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\Kathy Wang\Documents\Visual Studio 2013\Projects\InteractiveGraphics\OpenGL\include" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt framebuffer.cpp gui.cxx ppc.cpp scene.cpp tmesh.cpp
+  framebuffer.cpp
+  gui.cxx
+  ppc.cpp
+  scene.cpp
+  tmesh.cpp
+Link:
+  C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Kathy Wang\Documents\Visual Studio 2013\Projects\InteractiveGraphics\Release\interactiveGraphics.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\Users\Kathy Wang\Documents\Visual Studio 2013\Projects\InteractiveGraphics\OpenGL\lib" cg.lib cgGL.lib tiff.lib fltk.lib fltkgl.lib opengl32.lib glu32.lib wsock32.lib comctl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Kathy Wang\Documents\Visual Studio 2013\Projects\InteractiveGraphics\Release\interactiveGraphics.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Kathy Wang\Documents\Visual Studio 2013\Projects\InteractiveGraphics\Release\interactiveGraphics.lib" /MACHINE:X86 /SAFESEH Release\framebuffer.obj
+  Release\gui.obj
+  Release\m33.obj
+  Release\ppc.obj
+  Release\scene.obj
+  Release\tmesh.obj
+  Release\v3.obj
+LINK : fatal error C1047: The object or library file 'C:\Users\Kathy Wang\Documents\Visual Studio 2013\Projects\InteractiveGraphics\OpenGL\lib\tiff.lib' was created with an older compiler than other objects; rebuild old objects and libraries
+LINK : fatal error LNK1257: code generation failed
+Done Building Project "C:\Users\Kathy Wang\Documents\Visual Studio 2013\Projects\InteractiveGraphics\interactiveGraphics.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:03.92
