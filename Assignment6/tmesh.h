@@ -61,8 +61,9 @@ public:
   unsigned int tilingRepeat(float s, float t, FrameBuffer *texture);
   unsigned int tilingMirror(float s, float t, FrameBuffer *texture);
 
-  void shadowMapping(PPC *light, FrameBuffer *shadowMap);
+  void shadowMapping(PPC *ppc, PPC *lightCam, FrameBuffer *fb, FrameBuffer *shadowMap);
   //void surfaceLighting(PPC *ppc, PPC *lightSource, FrameBuffer *fb, FrameBuffer *shadowMap, unsigned int color, float ka, float es, int renderMode);
 
   void edgeEqa_rastPara(V3 *pverts, int *vinds, V3 ee0, V3 ee1, V3 ee2, M33 rast_inv);
+  V3 GetSMCoordinate(PPC *ppc, PPC* lightCam, V3 pv, V3 ABC);
 };

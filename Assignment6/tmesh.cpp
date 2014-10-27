@@ -381,312 +381,11 @@ void TMesh::Rotate(V3 aO, V3 aD, float thetad){
 	}
 }
 
-/*
-void TMesh::RenderFilled(PPC *ppc, PPC *lightSource, 
-						 FrameBuffer *fb, FrameBuffer *texture, FrameBuffer *shadowMap,
-						 unsigned int color, V3 L, float ka, float es, 
-						 int renderMode, int lookupMode, int tilingMode) {
-
-	V3 *pverts = new V3[vertsN];
-	V3 *spverts = new V3[vertsN];
-	bool *viewProj_flag = new bool[vertsN];
-	bool *shadProj_flag = new bool[vertsN];
-	for (int vi = 0; vi < vertsN; vi++) {
-		//Project vertices to view framebuffer
-		viewProj_flag[vi] = ppc->Project(verts[vi], pverts[vi]);
-		//Project vertices to shadow framebuffer
-		shadProj_flag[vi] = lightSource->Project(verts[vi], spverts[vi]);
-	}
-
-	for (int tri = 0; tri < trisN; tri++) {
-		int vinds[3];
-		vinds[0] = tris[tri * 3 + 0];
-		vinds[1] = tris[tri * 3 + 1];
-		vinds[2] = tris[tri * 3 + 2];
-
-		// Do not render triangle if any of its vertices had an invalid projection on view buffer
-		if (!viewProj_flag[vinds[0]] || !viewProj_flag[vinds[1]] || !viewProj_flag[vinds[2]])
-			continue;
-
-		for (int vi = 0; vi < 3; vi++){
-			V3 col0, col1;
-			if (cols) {
-				col0 = cols[vinds[vi]];
-				col1 = cols[vinds[(vi + 1) % 3]];
-			}
-			else {
-				col0.SetFromColor(color);
-				col1.SetFromColor(color);
-			}
-		}
-		// Compute bounding box aabb of projected vertices on view framebuffer
-		AABB *bbox = new AABB(pverts[vinds[0]]);
-		bbox->AddPoint(pverts[vinds[1]]);
-		bbox->AddPoint(pverts[vinds[2]]);
-		ClipBbox(fb, bbox);
-		// on shadow framebuffer
-		AABB *sbbox = new AABB(spverts[vinds[0]]);
-		sbbox->AddPoint(spverts[vinds[1]]);
-		sbbox->AddPoint(spverts[vinds[2]]);
-		ClipBbox(shadowMap, sbbox);
-
-		// Setup edge equations ee and rasterization parameter
-		V3 ee0, ee1, ee2;
-		M33 rast_inv;
-		edgeEqa_rastPara(pverts, vinds, ee0, ee1, ee2, rast_inv);
-
-		float r[3];
-		V3 colors[3];
-
-		// Setup screen space linear variation of depth: zABC on view framebuffer
-		r[0] = pverts[vinds[0]][2];
-		r[1] = pverts[vinds[1]][2];
-		r[2] = pverts[vinds[2]][2];
-		V3 rZ = V3(r[0], r[1], r[2]);
-		V3 zABC = rast_inv*rZ;
-
-		// zbuffer on shadow framebuffer
-		r[0] = spverts[vinds[0]][2];
-		r[1] = spverts[vinds[1]][2];
-		r[2] = spverts[vinds[2]][2];
-		V3 srZ = V3(r[0], r[1], r[2]);
-		V3 szABC = rast_inv*srZ;
-
-
-		// Get color of three vertex from fb
-		if (cols) {
-			colors[0].SetFromColor(cols[vinds[0]].GetColor());
-			colors[1].SetFromColor(cols[vinds[1]].GetColor());
-			colors[2].SetFromColor(cols[vinds[2]].GetColor());
-		}
-		else {
-			colors[0].SetFromColor(color);
-			colors[1].SetFromColor(color);
-			colors[2].SetFromColor(color);
-		}
-
-		// Setup screen space linear variation of red: redABC	
-		r[0] = colors[0][0];
-		r[1] = colors[1][0];
-		r[2] = colors[2][0];
-		V3 rRed = V3(r[0], r[1], r[2]);
-		V3 redABC = rast_inv*rRed;
-
-		// Setup screen space linear variation of green: greenABC 
-		r[0] = colors[0][1];
-		r[1] = colors[1][1];
-		r[2] = colors[2][1];
-		V3 rGreen = V3(r[0], r[1], r[2]);
-		V3 greenABC = rast_inv*rGreen;
-
-		// Setup screen space linear variation of blue: blueABC
-		r[0] = colors[0][2];
-		r[1] = colors[1][2];
-		r[2] = colors[2][2];
-		V3 rBlue = V3(r[0], r[1], r[2]);
-		V3 blueABC = rast_inv*rBlue;
-
-		// Setup screen space linear variation of nx
-		r[0] = normals[vinds[0]][0];
-		r[1] = normals[vinds[1]][0];
-		r[2] = normals[vinds[2]][0];
-		V3 rnx = V3(r[0], r[1], r[2]);
-		V3 nxABC = rast_inv*rnx;
-
-		// Setup screen space linear variation of ny
-		r[0] = normals[vinds[0]][1];
-		r[1] = normals[vinds[1]][1];
-		r[2] = normals[vinds[2]][1];
-		V3 rny = V3(r[0], r[1], r[2]);
-		V3 nyABC = rast_inv*rny;
-
-		// Setup screen space linear variation of nz
-		r[0] = normals[vinds[0]][2];
-		r[1] = normals[vinds[1]][2];
-		r[2] = normals[vinds[2]][2];
-		V3 rnz = V3(r[0], r[1], r[2]);
-		V3 nzABC = rast_inv*rnz;
-
-		V3 rs, rt;
-		// Setup model space -> s 	
-		if (tilingMode == 0) {  // no tiling
-			if (textureC) {
-				r[0] = textureC[vinds[0]][0];
-				r[1] = textureC[vinds[1]][0];
-				r[2] = textureC[vinds[2]][0];
-				rs = V3(r[0], r[1], r[2]);
-				//V3 s = rast_inv*rs;
-
-				// Setup model space -> t
-				r[0] = textureC[vinds[0]][1];
-				r[1] = textureC[vinds[1]][1];
-				r[2] = textureC[vinds[2]][1];
-				rt = V3(r[0], r[1], r[2]);
-				//V3 t = rast_inv*rt;
-			}
-			else {
-				rs = V3(0, 0, 0);
-				rt = V3(0, 0, 0);
-			}
-		}
-		else if (tilingMode == 1 || tilingMode == 2) {
-			if (textureCC) {
-				r[0] = textureCC[vinds[0]][0];
-				r[1] = textureCC[vinds[1]][0];
-				r[2] = textureCC[vinds[2]][0];
-				rs = V3(r[0], r[1], r[2]);
-				//V3 s = rast_inv*rs;
-
-				// Setup screen space linear variation of t
-				r[0] = textureCC[vinds[0]][1];
-				r[1] = textureCC[vinds[1]][1];
-				r[2] = textureCC[vinds[2]][1];
-				rt = V3(r[0], r[1], r[2]);
-				//V3 t = rast_inv*rt;
-			}
-			else {
-				rs = V3(0, 0, 0);
-				rt = V3(0, 0, 0);
-			}
-		}
-		else {
-			rs = V3(0, 0, 0);
-			rt = V3(0, 0, 0);
-		}
-		
-
-		// texture mapping, model space interpolation, aka correct interporlation
-		// calculate D,E,F ------------------------------ 
-		M33 V;
-		V.SetColumn(0, verts[vinds[0]] - ppc->C);
-		V.SetColumn(1, verts[vinds[1]] - ppc->C);
-		V.SetColumn(2, verts[vinds[2]] - ppc->C);
-		V = V.Inverse();
-
-		M33 ABC;
-		ABC.SetColumn(0, ppc->a);
-		ABC.SetColumn(1, ppc->b);
-		ABC.SetColumn(2, ppc->c);
-		
-		// get q matrix
-		M33 q = V * ABC;
-		float D = q[0][0] + q[1][0] + q[2][0];
-		float E = q[0][1] + q[1][1] + q[2][1];
-		float F = q[0][2] + q[1][2] + q[2][2];
-		V3 DEF = V3(D, E, F);
-
-		// for all rows v of aabb
-		// for all columns u of row v
-
-		V3 pv;
-		for (int v = bbox->corners[0][1]; v < bbox->corners[1][1]; v++){
-			for (int u = bbox->corners[0][0]; u < bbox->corners[1][0]; u++){
-				// Current pixel is p(u,v)
-				// Current pixel vector is pv(u+0.5,v+0.5,1.0)
-				pv = V3(u + 0.5, v + 0.5, 1.0);
-				// Check whether current pixel is inside triangle
-				// if the pixel is on wrong side of any of the triangle edges
-				// if(pv*ee0<0 || pv*ee1 || pv*ee2)
-				// continue
-				if (pv*ee0 < 0 || pv*ee1 < 0 || pv*ee2 < 0)
-					continue;
-
-				// Check whether triangle is closer than what was previously
-				// seen at this pixel
-				// currz = zABC * pv
-				// if currz < ZB[p]
-				// continue
-				// ZB[p] = currz
-
-
-				// zbuffer on view framebuffer
-				float currz = zABC*pv;
-				if (fb->IsOutsideFrame((int)u, (int)v))
-					continue;
-				if (fb->IsFarther((int)u, (int)v, currz))
-					continue;
-				fb->SetZ((int)u, (int)v, currz);
-
-				// zbuffer (model space) on shadow framebuffer
-				V3 zbABC = getABC(q, srZ);
-				float smsCurrZ = (zbABC * pv) / (DEF * pv);
-
-				// texture mapping (model space)
-				V3 sABC = getABC(q, rs);
-				V3 tABC = getABC(q, rt);
-				float s = (sABC * pv) / (DEF * pv);
-				float t = (tABC * pv) / (DEF * pv);
-
-				// pixel is inside triangle and triangle is visible at pixel
-				// compute color of pixel based on current triangle
-
-				if (renderMode == 1){
-					cerr << "." << endl;
-					unsigned int c = SSIVColor(pv, redABC, greenABC, blueABC).GetColor();
-					fb->Set(u, v, c);
-				}
-				else if (renderMode == 2){
-					
-					V3 P = ppc->UnProject(V3(u + 0.5, v + 0.5, currz));
-					V3 lv = L - P;
-					lv.Normalize();
-					std::array<float, 3> kd = KD_perV(lv, normals, vinds[0], vinds[1], vinds[2]);
-					std::array<float, 3> ks = KS_perV(lv, ppc->C, normals, vinds[0], vinds[1], vinds[2], es);
-
-					//Setup Screen Space linear variation
-					V3 lrRedABC = getSScolor(colors, ka, kd, ks, rast_inv, "red");
-					V3 lrGreenABC = getSScolor(colors, ka, kd, ks, rast_inv, "green");
-					V3 lrBlueABC = getSScolor(colors, ka, kd, ks, rast_inv, "blue");
-				
-					V3 newColor = SSIVColor(pv, lrRedABC, lrGreenABC, lrBlueABC);
-					fb->Set(u, v, newColor.GetColor());
-					
-				}
-				
-				else if (renderMode == 3){
-					//	surface point at current pixel P
-					//	P = ppc->Unproject(u+0.5,v+0.5,currz)
-					V3 P = ppc->UnProject(V3(u + 0.5, v + 0.5, currz));
-					//	lv = (L-P).normalized()
-					V3 lv = L - P;
-					lv.Normalize();
-
-					//	kd = lv * n; kd = (kd<0)?0:kd;
-					V3 n = SSIN(pv, nxABC, nyABC, nzABC);
-					float kd = KD_perP(lv, n);
-					float ks = KS_perP(lv, ppc->C, n, es);
-
-					//	FB[p] = color * (ka + (1-ka)*kd);
-					V3 origColor = SSIVColor(pv, redABC, greenABC, blueABC);
-					V3 newColor = origColor * (ka + (1 - ka)*kd + ks);
-					fb->Set(u, v, newColor.GetColor());
-				}
-				else if (renderMode == 4) { // texture mapping
-					//TextureMapping(u, v, s, t, fb, texture, 2, 1);
-					TextureMapping(u, v, s, t, fb, texture, lookupMode, tilingMode);
-				}
-				else if (renderMode == 5) { // shadow mapping
-					//cerr << smsCurrZ << ", " << shadowMap->GetZ((int)u, (int)v) << endl;
-					if (smsCurrZ > shadowMap->GetZ((int)u, (int)v)) { // in the shadow
-						unsigned int c = SSIVColor(pv, redABC, greenABC, blueABC).GetColor();
-						fb->Set(u, v, c);
-					}
-					else { // surface to the light, brighters
-						unsigned int c = V3(125, 0, 0).GetColor();
-						fb->Set(u, v, c);
-					}
-				}
-			}
-		}
-	}
-	delete[]pverts;
-}*/
 
 void TMesh::RenderFilled(PPC *ppc, PPC *lightSource, 
 	FrameBuffer *fb, FrameBuffer *texture, FrameBuffer *shadowMap,
 	unsigned int color, V3 L, float ka, float es, int renderMode, int lookupMode, int tilingMode) {
 
-	cerr << shadowMap->w << ", " << shadowMap->h << endl;
 	V3 *pverts = new V3[vertsN];
 	bool *proj_flag = new bool[vertsN];
 	for (int vi = 0; vi < vertsN; vi++) {
@@ -738,14 +437,11 @@ void TMesh::RenderFilled(PPC *ppc, PPC *lightSource,
 		b[0] = -x[1] + x[0];
 		c[0] = -x[0] * y[1] + y[0] * x[1];
 		V3 ee0 = V3(a[0], b[0], c[0]);
-
-
 		//ee1
 		a[1] = y[2] - y[1];
 		b[1] = -x[2] + x[1];
 		c[1] = -x[1] * y[2] + y[1] * x[2];
 		V3 ee1 = V3(a[1], b[1], c[1]);
-
 		//ee2
 		a[2] = y[0] - y[2];
 		b[2] = -x[0] + x[2];
@@ -768,7 +464,6 @@ void TMesh::RenderFilled(PPC *ppc, PPC *lightSource,
 		r[2] = pverts[vinds[2]][2];
 		V3 rZ = V3(r[0], r[1], r[2]);
 		V3 zABC = rast_inv*rZ;
-
 
 		// Get color of three vertex from fb
 		if (cols) {
@@ -876,7 +571,7 @@ void TMesh::RenderFilled(PPC *ppc, PPC *lightSource,
 		r[2] = pverts[vinds[2]][2];
 		V3 mrZ = V3(r[0], r[1], r[2]);  // for model space 
 
-		// texture mapping, model space interpolation, aka correct interporlation
+		// texture mapping, model space interpolation, aka correct inteddddddddddddrporlation
 		// calculate D,E,F ------------------------------ 
 		M33 V;
 		V.SetColumn(0, verts[vinds[0]] - lightSource->C);
@@ -986,14 +681,37 @@ void TMesh::RenderFilled(PPC *ppc, PPC *lightSource,
 					TextureMapping(u, v, s, t, fb, texture, lookupMode, tilingMode);
 
 				}
-				else if (renderMode == 5) {
-					if (msCurrZ > shadowMap->GetZ((int)u, (int)v)) {
-						unsigned int c = SSIVColor(pv, redABC, greenABC, blueABC).GetColor();
-						fb->Set(u, v, c);
+				else if (renderMode == 5) { // shadow mapping
+					if (msCurrZ > shadowMap->GetZ((int)u, (int)v)) { // shadow, maintain origi color 
+						
+						V3 c = SSIVColor(pv, redABC, greenABC, blueABC);
+						//cerr << "in shadow" << endl;
+						V3 P = ppc->UnProject(V3(u + 0.5, v + 0.5, currz));
+						V3 lv = L - P;
+						lv.Normalize();
+						V3 n = SSIN(pv, nxABC, nyABC, nzABC);
+						float kd = lv * n;
+						kd = (kd < 0) ? 0 : kd;
+						c = c*kd;
+						//V3 c = V3(0, 0, 140);
+						fb->Set(u, v, c.GetColor());
 					}
 					else { // the pixel is brighter
-						unsigned int c = V3(125, 0, 0).GetColor();
-						fb->Set(u, v, c);
+						V3 P = ppc->UnProject(V3(u + 0.5, v + 0.5, currz));
+						//	lv = (L-P).normalized()
+						V3 lv = L - P;
+						lv.Normalize();
+
+						//	kd = lv * n; kd = (kd<0)?0:kd;
+						V3 n = SSIN(pv, nxABC, nyABC, nzABC);
+						float kd = KD_perP(lv, n);
+						float ks = KS_perP(lv, ppc->C, n, es);
+
+						//	FB[p] = color * (ka + (1-ka)*kd);
+						V3 origColor = SSIVColor(pv, redABC, greenABC, blueABC);
+						V3 newColor = origColor * (ka + (1 - ka)*kd + ks);
+						V3 c = V3(124, 0, 0);
+						fb->Set(u, v, c.GetColor());
 
 					}
 				}
@@ -1100,8 +818,6 @@ V3 TMesh::getSScolor(V3 *colors, float ka, std::array<float, 3> kd, std::array<f
 	return ret;
 
 }
-
-
 
 
 // screen space interpolation -- get color
@@ -1276,12 +992,14 @@ unsigned int TMesh::tilingRepeat(float s, float t, FrameBuffer *texture) {
 }
 
 
-void TMesh::shadowMapping(PPC *lightCam, FrameBuffer *shadowMap) {
+void TMesh::shadowMapping(PPC *ppc, PPC *lightCam, FrameBuffer *fb, FrameBuffer *shadowMap) {
 
+	cerr << "shadowmapping" << endl;
 	V3 *pverts = new V3[vertsN];
 	bool *proj_flag = new bool[vertsN];
 	for (int vi = 0; vi < vertsN; vi++) {
-		proj_flag[vi] = lightCam->Project(verts[vi], pverts[vi]);
+		//proj_flag[vi] = lightCam->Project(verts[vi], pverts[vi]);
+		proj_flag[vi] = ppc->Project(verts[vi], pverts[vi]);
 	}
 
 	for (int tri = 0; tri < trisN; tri++) {
@@ -1300,7 +1018,7 @@ void TMesh::shadowMapping(PPC *lightCam, FrameBuffer *shadowMap) {
 		bbox->AddPoint(pverts[vinds[2]]);
 
 		// clip bbox within frame
-		ClipBbox(shadowMap, bbox);
+		ClipBbox(fb, bbox);
 
 		// Setup edge equations ee0, ee1, ee2
 		float a[3], b[3], c[3];
@@ -1348,16 +1066,22 @@ void TMesh::shadowMapping(PPC *lightCam, FrameBuffer *shadowMap) {
 
 		// calculate D,E,F ------------------------------ 
 		M33 V;
+		/*
 		V.SetColumn(0, verts[vinds[0]] - lightCam->C);
 		V.SetColumn(1, verts[vinds[1]] - lightCam->C);
 		V.SetColumn(2, verts[vinds[2]] - lightCam->C);
+		*/
+		V.SetColumn(0, verts[vinds[0]] - ppc->C);
+		V.SetColumn(1, verts[vinds[1]] - ppc->C);
+		V.SetColumn(2, verts[vinds[2]] - ppc->C);
 		V = V.Inverse();
 
 		M33 ABC;
-		ABC.SetColumn(0, lightCam->a);
-		ABC.SetColumn(1, lightCam->b);
-		ABC.SetColumn(2, lightCam->c);
-
+		/*
+		ABC.SetColumn(0, ppc->a);
+		ABC.SetColumn(1, ppc->b);
+		ABC.SetColumn(2, ppc->c);
+		*/
 		// get q matrix
 		M33 q = V * ABC;
 		float D = q[0][0] + q[1][0] + q[2][0];
@@ -1378,17 +1102,21 @@ void TMesh::shadowMapping(PPC *lightCam, FrameBuffer *shadowMap) {
 				if (pv*ee0 < 0 || pv*ee1 < 0 || pv*ee2 < 0)
 					continue;
 
+
+
 				// screen space interpolation -> zbuffer
 				float ssCurrZ = zABC*pv;
 				// model space interpolation -> zbuffer
 				V3 zABC = getABC(q, rZ);
 				float msCurrZ = (zABC * pv) / (DEF * pv);
 				
-				if (shadowMap->IsOutsideFrame((int)u, (int)v))
-					continue;
-				if (shadowMap->IsFarther((int)u, (int)v, msCurrZ)) // model space for now
+				//if (shadowMap->IsOutsideFrame((int)u, (int)v))
+					//continue;
+				//if (shadowMap->IsFarther((int)u, (int)v, msCurrZ)) // model space for now
+				if (shadowMap->IsFarther((int)u, (int)v, msCurrZ))
 					continue;
 				shadowMap->SetZ((int)u, (int)v, msCurrZ);
+				shadowMap->Set((int)u, (int)v, 0xFF000000);
 			}
 
 		}

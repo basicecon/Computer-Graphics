@@ -1,0 +1,13 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0108 
+header_name {.h} 
+code_name {.cxx}
+widget_class UserInterface {open
+  xywh {39 66 140 100} type Double hide
+} {
+  Fl_File_Input TextureFile {
+    label {texture file:}
+    callback {loadFile_cb()} selected
+    xywh {25 25 50 34}
+  }
+} 

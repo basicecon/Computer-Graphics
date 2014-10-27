@@ -51,6 +51,7 @@ public:
   void Repeat();
   void Mirror();
   void Browse();
+  void Shadow();
 
   void LoadFile();
   const char* ReadFile();
